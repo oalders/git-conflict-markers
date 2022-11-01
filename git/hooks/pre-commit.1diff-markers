@@ -1,19 +1,20 @@
 #!/bin/bash
 
+# Based on code found at https://blog.meain.io/2019/making-sure-you-wont-commit-conflict-markers/
 set -eu -o pipefail
 
-MARKERS="<<<<<<<|=======|>>>>>>>"
+# A 3 way diff will contain "|||||||"
+# \|{7} is easier to read than "\|\|\|\|\|\|\|"
+MARKERS="<<<<<<<|=======|>>>>>>>|\|{7}"
 
 # Search for lines with one more more leading "+" signs, since we only want to
 # catch diffs which are adding conflict markers. Without the "+" constraint
 # we'll also be catching diffs which remove them.
 REGEX="^\++($MARKERS)($|\s)"
 
-# Check the output of git diff --staged. We use rip-grep to filter the output
-# because BSD's grep does not support -P. Pipe the results through awk because
-# wc returns padded output. We could also check rip-grep's exit code, but
-# checking for a non-zero line count seems like a reasonable approach.
-if [ "$(git diff --staged | rg "$REGEX" | wc -l | awk '{$1=$1;print}')" -gt 0 ]
+# Check the output of git diff --staged. We use ripgrep to filter the output
+# because BSD's grep does not support -P.
+if [[ "$(git diff --staged | rg -c --no-config "$REGEX")" -gt 0 ]]
 then
     echo "❌ git conflict markers present in diff"
     echo "Files with violations:"
