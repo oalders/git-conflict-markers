@@ -1,0 +1,29 @@
+#!/bin/bash
+
+set -eu -o pipefail
+
+MARKERS="<<<<<<<|=======|>>>>>>>"
+
+# Search for lines with one more more leading "+" signs, since we only want to
+# catch diffs which are adding conflict markers. Without the "+" constraint
+# we'll also be catching diffs which remove them.
+REGEX="^\++($MARKERS)($|\s)"
+
+# Check the output of git diff --staged. We use rip-grep to filter the output
+# because BSD's grep does not support -P. Pipe the results through awk because
+# wc returns padded output. We could also check rip-grep's exit code, but
+# checking for a non-zero line count seems like a reasonable approach.
+if [ "$(git diff --staged | rg "$REGEX" | wc -l | awk '{$1=$1;print}')" -gt 0 ]
+then
+    echo "❌ git conflict markers present in diff"
+    echo "Files with violations:"
+
+    # This diff is not exactly the same as the diff above, as it cannot
+    # distinguish between added and removed lines. In most cases it should be
+    # good enough. We only need it to give us some clues as to where to find
+    # the conflict markers.
+    git diff --staged --name-only -G"$MARKERS"
+    exit 1
+fi
+
+echo "✨ No conflict markers found"

@@ -1,13 +1,17 @@
-# What is this?
+# What is This?
 
 A demo repo to explore how to handle git conflict markers.
 
-To get a merge conflict:
+## Set Up Git Hooks
+
+```bash
+./git/setup.sh
+```
+
+## Create a Merge Conflict:
 
 ```
 git co -b conflict
 git merge one
 git merge two
 ```
-
-A a different new line to README.md.
