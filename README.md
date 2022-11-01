@@ -9,3 +9,5 @@ git co -b conflict
 git merge one
 git merge two
 ```
+
+A a different new line to README.md.
